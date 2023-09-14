@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { View, Text, TextInput, Button, ImageBackground, StyleSheet, TouchableOpacity, Alert } from 'react-native';
+import { View, Text, TextInput, Button, ImageBackground, StyleSheet, TouchableOpacity, Alert, Pressable } from 'react-native';
 import { signinApi } from '../../API';
 import SyncStorage from 'sync-storage';
 import { useSelector, useDispatch } from 'react-redux'
@@ -68,6 +68,12 @@ const LoginScreen = ({ navigation }) => {
           <Text>Login</Text>
         </TouchableOpacity>
       </View>
+      <Pressable 
+      style={styles.bottomCont}
+      onPress={()=> navigation.navigate("Signup")}
+      >
+        <Text>Don't have an account? <Text style={styles.signupText}>Sign Up</Text></Text>
+      </Pressable>
     </View>
   );
 };
@@ -119,6 +125,14 @@ const styles = StyleSheet.create({
   },
   loginText: {
     color:'grey'
+  },
+  bottomCont: {
+    alignItems:'center',
+    marginTop:10
+  },
+  signupText: {
+    color:'blue',
+    fontWeight:'bold'
   }
 });
 
