@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { View, Text, TextInput, Button, ImageBackground, StyleSheet, TouchableOpacity } from 'react-native';
+import { View, Text, TextInput, Button, ImageBackground, StyleSheet, TouchableOpacity, Alert } from 'react-native';
 import { signinApi } from '../../API';
 import SyncStorage from 'sync-storage';
 import { useSelector, useDispatch } from 'react-redux'
@@ -12,22 +12,29 @@ const LoginScreen = ({ navigation }) => {
 
   // Event handler after login is successful will navigate to Tasks screen 
   const handleLogin = () => {
-    let body = {
+
+    if(!email || !password) {
+      Alert.alert("Login", "Please provide email and password")
+    } else {
+      let body = {
         email: email,
         password: password
-    }
-    dispatch(loaderOn())
+      }
+      dispatch(loaderOn())
 
-    signinApi(body).then((res)=>{
-        SyncStorage.set('userDetails', res.data);
-        SyncStorage.set('token', res?.data?.token);
-        dispatch(login()) 
-        dispatch(loaderOff())
-        navigation.navigate('Home');
-    }).catch(err =>{
-        dispatch(loaderOff())
-        console.log(err)
-    })
+      signinApi(body).then((res)=>{
+          SyncStorage.set('userDetails', res.data);
+          SyncStorage.set('token', res?.data?.token);
+          dispatch(login()) 
+          dispatch(loaderOff())
+          navigation.navigate('Home');
+      }).catch(err =>{
+          dispatch(loaderOff())
+          console.log(err)
+      })
+
+    }
+
   };
 
   return (
