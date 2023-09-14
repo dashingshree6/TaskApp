@@ -15,6 +15,7 @@ import TaskScreen from './screens/Tasks/Tasks';
 import CreateTaskScreen from './screens/Tasks/CreateTask';
 import { logout } from './screens/Redux/authenticationSlice';
 import ActivityLoader from './screens/ActivityLoader';
+import SignUpScreen from './screens/Signup/SignUp';
 
 const Stack = createStackNavigator();
 const Tab = createBottomTabNavigator();
@@ -83,7 +84,9 @@ export default function AppScreen() {
           <Stack.Navigator initialRouteName="Login">
             { !isAuthenticated ? 
             
-            (<Stack.Screen 
+            (
+            <>
+            <Stack.Screen 
             name="Login" 
             component={LoginScreen} 
             options={{
@@ -92,6 +95,17 @@ export default function AppScreen() {
               headerTitleAlign:"center",
             }}
             />
+
+          <Stack.Screen 
+            name="Signup" 
+            component={SignUpScreen} 
+            options={{
+              headerTitle:"Task Manager",
+              headerTintColor:"grey",
+              headerTitleAlign:"center",
+            }}
+            />
+            </>
             )
             :
             (
