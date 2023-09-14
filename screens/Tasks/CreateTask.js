@@ -1,11 +1,14 @@
 import React, { useState } from 'react';
-import { View, Text, TextInput, Button, TouchableOpacity, Alert, StyleSheet, Pressable } from 'react-native';
+import { View, Text, TextInput, Button, TouchableOpacity, Alert, StyleSheet, Pressable, ActivityIndicator } from 'react-native';
 import { createTask } from '../../API';
 import SyncStorage from 'sync-storage';
 import DateTimePickerModal from "react-native-modal-datetime-picker";
 import AntDesign from 'react-native-vector-icons/AntDesign';
+import { useSelector, useDispatch } from 'react-redux'
+import { loaderOff, loaderOn } from '../Redux/authenticationSlice';
 
 const CreateTaskScreen = ({navigation}) => {
+  const dispatch = useDispatch()
   const [title, setTitle] = useState('');
   const [description, setDescription] = useState('');
   const [dueDate, setDueDate] = useState(new Date());
@@ -33,14 +36,17 @@ const CreateTaskScreen = ({navigation}) => {
     if(!title || !description || !dueDate || !category) {
         Alert.alert("Create Task", "Please provide all fields");
     } else {
+        dispatch(loaderOn())
         createTask({title, description, dueDate, category},SyncStorage.get('token')).then(res => {
             setTitle('');
             setDescription('');
             setDueDate(new Date())
             setCategory('daily');
-    
+            dispatch(loaderOff())
+
             Alert.alert("Create Task", "Task created successfully")
         }).catch(err => {
+            dispatch(loaderOff())
             console.log(err)
         })
     }
@@ -135,7 +141,7 @@ const CreateTaskScreen = ({navigation}) => {
 const styles = StyleSheet.create({
     container: {
       padding: 16,
-      backgroundColor: '#adebeb',
+      backgroundColor: '#ebebe0',
       flex:1,
     },
     taskContainer:{      
