@@ -1,22 +1,62 @@
-import React, { useEffect, useState } from 'react';
-import { View, Text, FlatList, StyleSheet, Alert, TouchableOpacity } from 'react-native';
+import React, { useEffect, useState, useMemo } from 'react';
+import { View, Text, FlatList, StyleSheet, Alert, TouchableOpacity, TextInput, Modal, CheckBox } from 'react-native';
 import {useFocusEffect} from '@react-navigation/native';
-import { getTask, updateTask } from '../../API';
+import { deleteTask, getTask, updateTask } from '../../API';
 import SyncStorage from 'sync-storage';
 import AntDesign from 'react-native-vector-icons/AntDesign';
 import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
+import { useDispatch } from 'react-redux'
+import { loaderOff, loaderOn } from '../Redux/authenticationSlice';
+import RadioGroup from 'react-native-radio-buttons-group';
 
 const TaskScreen = () => {
+    const dispatch = useDispatch();
     const [tasks, setTasks] = useState([]);
+    const [tasksList, setTasksList] = useState([]);
     const [reload, setReload] = useState(false)
-    const [taskToBeUpdated, setTaskToBeUpdated] = useState("");
+    const [title, setTitle] = useState("");
+    const [categoryModal, setCategoryModal] = useState(false);
+    const [statusModal,setStatusModal] = useState(false);
+    const [selectedCategory, setSelectedCategory]= useState("");
+    const [selectedStatus, setSelectedSatus]= useState("");
+    const categories = useMemo(() => ([
+        {
+            id: 'daily',
+            label: 'Daily',
+            value: 'daily'
+        },
+        {
+            id: 'weekly',
+            label: 'Weekly',
+            value: 'weekly'
+        },
+        {
+            id: 'monthly',
+            label: 'Monthly',
+            value: 'monthly'
+        }
+    ]), []);
+
+    const status = useMemo(() => ([
+        {
+            id: 'Completed',
+            label: 'Completed',
+            value: 'Completed'
+        },
+        {
+            id: 'Incomplete',
+            label: 'Incomplete',
+            value: 'Incomplete'
+        }
+    ]), []);
 
     // Get all tasks
     useFocusEffect(
         React.useCallback(() => {
             getTask(SyncStorage.get('token'))
               .then(res => {
-               setTasks(res.data.reverse())
+               setTasks(res.data)
+               setTasksList(res.data)
               })
               .catch(err => {
                 console.log(err.message);
@@ -26,38 +66,164 @@ const TaskScreen = () => {
     
     // Update task status as completed
     const updateTaskStatus = (id) => {
-        updateTask(SyncStorage.get('token'),id).then(res => {
+      dispatch(loaderOn())
+        updateTask(id).then(res => {
             setReload(!reload)
+            dispatch(loaderOff())
             Alert.alert('Task Status', "Task marked as completed successfully")
         }).catch(err => {
+            dispatch(loaderOff())
             console.log(err)
         })
     }
 
-    // Update task status as completed
-    // useFocusEffect(
-    //     React.useCallback(() => {
-    //         if(taskToBeUpdated) {
-    //             updateTask(taskToBeUpdated, SyncStorage.get('token')).then(res => {
-    //                 setReload(!reload)
-    //                 setTaskToBeUpdated("")
-    //                 Alert.alert('Task Status', "Task marked as completed successfully")
-    //             }).catch(err => {
-    //                 console.log(err)
-    //             })
-    //         }
-    //     }, [taskToBeUpdated]),
-    //   );
+    // Delete the task
+    const deleteSingleTask = (id) => {
+      dispatch(loaderOn())
+          deleteTask(id).then(res => {
+              setReload(!reload)
+              dispatch(loaderOff())
+              Alert.alert('Delete Task', "Task deleted successfully")
+          }).catch(err => {
+              dispatch(loaderOff())
+              console.log(err)
+          })
+      }
+
+      // Handle clear filters
+      const handleClearFilters = () => {
+        setTitle("")
+        setSelectedCategory("")
+        setSelectedSatus("")
+        setTasks(tasksList)
+      }
+
+
+      // Filter tasks on the basis of title
+      useEffect(()=>{
+        if(title) {
+          setTasks(tasksList?.filter(i => i?.title.toLowerCase().includes(title?.toLowerCase())))
+        } else {
+          setTasks(tasksList)
+        }
+      },[title])
+
+      // Filter tasks on the basis of status
+      useEffect(()=>{
+        setStatusModal(false)
+        if(selectedStatus === "Completed") {
+          setTasks(tasksList?.filter(i => i?.completed === true))
+        } else if(selectedStatus === "Incomplete") {
+          setTasks(tasksList?.filter(i => i?.completed === false))
+        } else {
+          setTasks(tasksList)
+        }
+      },[selectedStatus])
+
+      // Filter tasks on the basis of category
+      useEffect(()=>{
+        setCategoryModal(false)
+        if(selectedCategory) {
+          setTasks(tasksList?.filter(i => i?.category === selectedCategory ))
+        } else {
+          setTasks(tasksList)
+        }
+      },[selectedCategory])
 
   return (
     <View style={styles.container}>
+
+      <TextInput 
+      style={styles.input}
+      onChangeText={setTitle}
+      value={title}
+      placeholder="Search for tasks"
+      />
+
+      <View style={styles.filterCont}>
+        <TouchableOpacity
+        style={styles.filterBtn}
+        onPress={()=>{
+          setStatusModal(false)
+          setCategoryModal(true)
+        }}
+        >
+          <Text>Category</Text>
+        </TouchableOpacity>
+
+        <TouchableOpacity
+        style={styles.filterBtn}
+        onPress={()=>{
+          setCategoryModal(false)
+          setStatusModal(true)
+        }}
+        >
+          <Text>Status</Text>
+        </TouchableOpacity>
+
+        <TouchableOpacity
+        style={styles.filterBtn}
+        onPress={handleClearFilters}
+        >
+          <Text>Clear filters</Text>
+        </TouchableOpacity>
+      </View>
+
+      {/* Modal for filtering tasks category wise */}
+      <Modal
+      animationType="fade"
+      transparent={true}
+      visible={categoryModal}
+      onRequestClose={() => {
+        setCategoryModal(!categoryModal);
+      }}>
+        <View style={styles.modalContainer}>
+        <View style={styles.categoryModalContainer}>
+          <View style={styles.categorySubContainer}>
+              <AntDesign onPress={()=>setCategoryModal(false)} name="close" size={25} color={'black'}/>
+              <Text style={styles.categoryConText}>Select Category</Text>
+          </View>
+          <RadioGroup 
+            radioButtons={categories} 
+            onPress={setSelectedCategory}
+            selectedId={selectedCategory}
+            layout={"row"}
+          />
+        </View>
+        </View>
+      </Modal>
+
+      {/* Modal for filtering tasks status wise */}
+      <Modal
+      animationType="fade"
+      transparent={true}
+      visible={statusModal}
+      onRequestClose={() => {
+        setStatusModal(!statusModal);
+      }}>
+        <View style={styles.modalContainer}>
+        <View style={styles.categoryModalContainer}>
+          <View style={styles.categorySubContainer}>
+              <AntDesign onPress={()=>setStatusModal(false)} name="close" size={25} color={'black'}/>
+              <Text style={styles.categoryConText}>Select Status</Text>
+          </View>
+          <RadioGroup 
+          radioButtons={status} 
+          onPress={setSelectedSatus}
+          selectedId={selectedStatus}
+          style={styles.filterCont}
+          layout={"row"}
+        />
+        </View>
+        </View>
+      </Modal>
 
       {/* Display list of all tasks */}
       <FlatList
         data={tasks}
         keyExtractor={(item) => item?._id}
         renderItem={({ item }) => (
-            <View style={styles.card}>
+            <View id={item?._id} style={styles.card}>
                 <View style={styles.titleCont}>
                     <Text style={styles.category}>{item.category ? item.category?.substring(0,1) : "N/A"}</Text>
                     <Text style={styles.title}>{item.title ? item.title?.substring(0,15) : "N/A"}</Text>
@@ -79,6 +245,8 @@ const TaskScreen = () => {
                     <Text style={styles.dueDate}>Complete this task before <Text style={{fontWeight:'500'}}>{item.dueDate ? String(item?.dueDate).substring(0,10) : "N/A"}</Text></Text>
                 </View>
           
+                <View style={styles.titleCont}>
+
                 <TouchableOpacity
                 style={styles.completeBtn}
                 onPress={()=> updateTaskStatus(item?._id)}
@@ -86,6 +254,16 @@ const TaskScreen = () => {
                     <AntDesign name="checksquareo" size={18} color={'white'}/>
                     <Text style={styles.completeText}>Mark as completed</Text>
                 </TouchableOpacity>
+
+                <TouchableOpacity
+                style={styles.deleteBtn}
+                onPress={()=> deleteSingleTask(item?._id)}
+                >
+                    <AntDesign name="delete" size={18} color={'white'}/>
+                    <Text style={styles.completeText}>Delete</Text>
+                </TouchableOpacity>
+
+                </View>
             </View>
         )}
       />
@@ -96,8 +274,49 @@ const TaskScreen = () => {
 const styles = StyleSheet.create({
     container: {
         padding: 8,
-        backgroundColor: '#adebeb',
+        backgroundColor: '#ebebe0',
         flex:1,
+    },
+    modalContainer: {
+      flex: 1,
+      justifyContent:'flex-end',
+      backgroundColor: 'rgba(0, 0, 0, 0.5)', // Black overlay with 50% opacity
+    },
+    input: {
+      fontSize: 16,
+      borderWidth: 1,
+      borderColor: '#ccc',
+      borderRadius: 4,
+      padding: 8,
+      marginBottom: 12,
+    },
+    filterBtn: {
+      borderWidth: 1,
+      borderColor: '#ccc',
+      borderRadius: 18,
+      padding: 6,
+      backgroundColor:'#fff',
+      marginRight:4
+    },
+    filterCont:{
+      flexDirection:'row'
+    },
+    categoryModalContainer: {
+      backgroundColor: 'white',
+      height:'20%',
+      position:"absolute",
+      bottom:0,
+      width:'120%',
+      padding:10
+    },
+    categorySubContainer: {
+      flexDirection:'row',
+      alignItems:'center',
+      marginBottom:10
+    },
+    categoryConText: {
+      fontSize:18,
+      marginLeft:25
     },
     card: {
       backgroundColor: '#FFFFFF', // White background
@@ -183,7 +402,17 @@ const styles = StyleSheet.create({
         color:'#fff',
         fontWeight:'bold',
         marginLeft:10
-    }
+    },
+    deleteBtn:{
+      flexDirection:'row',
+      backgroundColor:'#ff1a1a',
+      borderWidth: 1,
+      borderColor: '#ff1a1a',
+      borderRadius: 20,
+      padding:8,
+      alignItems:'center',
+      justifyContent:"center"
+  },
   });
 
 export default TaskScreen;
