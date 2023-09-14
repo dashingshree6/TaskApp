@@ -219,7 +219,8 @@ const TaskScreen = () => {
       </Modal>
 
       {/* Display list of all tasks */}
-      <FlatList
+      { tasks?.length ?  
+        ( <FlatList
         data={tasks}
         keyExtractor={(item) => item?._id}
         renderItem={({ item }) => (
@@ -266,7 +267,8 @@ const TaskScreen = () => {
                 </View>
             </View>
         )}
-      />
+      />)
+      : <View style={styles.noTasksFound}><Text>No tasks found</Text></View>}
     </View>
   );
 };
@@ -281,6 +283,12 @@ const styles = StyleSheet.create({
       flex: 1,
       justifyContent:'flex-end',
       backgroundColor: 'rgba(0, 0, 0, 0.5)', // Black overlay with 50% opacity
+    },
+    noTasksFound:{
+      alignItems:'center',
+      justifyContent:'center',
+      height:'100%',
+      width:'100%'
     },
     input: {
       fontSize: 16,
