@@ -1,6 +1,6 @@
 import axios from 'axios';
 
-export let baseURL = 'https://33c1-49-205-239-19.ngrok-free.app';
+export let baseURL = 'https://2867-2409-40c2-1024-a869-5898-f51d-1868-b07a.ngrok.io';
 
 // Sign in API
 export const signinApi = body => axios.post(`${baseURL}/user/login`, body);
@@ -11,14 +11,10 @@ export const createTask = (body, token) => axios.post(`${baseURL}/tasks`,body,{
 })
 
 // Delete task API
-export const deleteTask = (id, token) => axios.delete(`${baseURL}/tasks/${id}`,{
-    headers: {Authorization: `Bearer ${token}`},
-})
+export const deleteTask = (id) => axios.delete(`${baseURL}/tasks/${id}`)
 
 // Update task status API
-export const updateTask = (token, id) => axios.put(`${baseURL}/tasks/${id}`,{
-    headers: {Authorization: `Bearer ${token}`},
-})
+export const updateTask = (id) => axios.put(`${baseURL}/tasks/status/${id}`)
 
 // Get all task API
 export const getTask = (token) => axios.get(`${baseURL}/tasks`,{
