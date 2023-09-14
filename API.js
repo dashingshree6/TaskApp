@@ -1,9 +1,12 @@
 import axios from 'axios';
 
-export let baseURL = 'https://2867-2409-40c2-1024-a869-5898-f51d-1868-b07a.ngrok.io';
+export let baseURL = 'https://caf8-2409-40c2-115d-5801-44c7-2626-ff7-782b.ngrok.io';
 
 // Sign in API
 export const signinApi = body => axios.post(`${baseURL}/user/login`, body);
+
+// Sign up API
+export const signUpApi = body => axios.post(`${baseURL}/user/register`, body);
 
 // Create task API
 export const createTask = (body, token) => axios.post(`${baseURL}/tasks`,body,{
