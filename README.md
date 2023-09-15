@@ -4,8 +4,8 @@
 
 ## 1) git clone
 
-## npm install
+## 2) npm install
 
-## Copy the ngrok link after running the backend in API.js
+## 3) Copy the ngrok link after running the backend in API.js
 
 ## npx expo start
