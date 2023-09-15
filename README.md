@@ -8,4 +8,4 @@
 
 ## 3) Copy the ngrok link after running the backend in API.js
 
-## npx expo start
+## 4) npx expo start
