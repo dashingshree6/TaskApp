@@ -2,7 +2,7 @@
 
 ## Guidelines to create development environment 
 
-## git clone
+## 1) git clone
 
 ## npm install
 
