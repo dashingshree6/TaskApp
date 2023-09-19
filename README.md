@@ -9,3 +9,5 @@
 ## 3) Copy the ngrok link after running the backend in API.js
 
 ## 4) npx expo start
+
+## 5) Select android, ios, web, etc as per your requirements
